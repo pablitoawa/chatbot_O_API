@@ -1,0 +1,103 @@
+<div class="chat-container">
+  <div class="chat-header">
+    <h3>Asistente Virtual de Ventas</h3>
+  </div>
+  <!-- #chatMessages para controlar el scroll -->
+  <div
+    #chatMessages
+    class="chat-messages"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave($event)"
+    (drop)="onDrop($event)"
+  >
+    <div
+      *ngFor="let message of messages"
+      class="message"
+      [ngClass]="{
+        'user-message': message.isUser,
+        'bot-message': !message.isUser
+      }"
+    >
+      <ng-container
+        *ngIf="!message.isAudio && !message.isImage; else mediaMessage"
+      >
+        {{ message.text }}
+      </ng-container>
+      <!-- #mediaMessage para mostrar el componente de audio -->
+      <ng-template #mediaMessage>
+        <ng-container *ngIf="message.isAudio">
+          <div class="audio-container">
+            <audio [src]="message.audioUrl" controls></audio>
+            <button
+              (click)="message.showTranscription = !message.showTranscription"
+              class="toggle-transcription"
+            >
+              <i
+                class="fas"
+                [ngClass]="{
+                  'fa-headphones': !message.showTranscription,
+                  'fa-file-alt': message.showTranscription
+                }"
+              ></i>
+            </button>
+          </div>
+          <div
+            *ngIf="message.showTranscription && message.transcription"
+            class="transcription"
+          >
+            {{ message.transcription }}
+          </div>
+        </ng-container>
+        <ng-container *ngIf="message.isImage">
+          <img
+            [src]="message.imageUrl"
+            alt="Uploaded image"
+            class="uploaded-image"
+          />
+        </ng-container>
+      </ng-template>
+      <!-- messageTimestamp para mostrar la fecha -->
+      <span class="message-timestamp">{{ message.timestamp }}</span>
+    </div>
+    <div *ngIf="isDragging" class="file-drop-overlay">
+      <i class="fas fa-cloud-upload-alt"></i>
+      <p>Suelta el archivo aquí</p>
+    </div>
+    <div *ngIf="isLoading" class="loading-indicator">
+      <div class="loading-blob"></div>
+    </div>
+  </div>
+  <div class="chat-input">
+    <div class="input-area">
+      <label for="fileInput" class="file-upload-icon">
+        <i class="fas fa-paperclip"></i>
+      </label>
+      <input
+        type="file"
+        id="fileInput"
+        (change)="onFileSelected($event)"
+        accept="image/*,audio/*"
+        style="display: none"
+      />
+      <input
+        type="text"
+        [(ngModel)]="newMessage"
+        placeholder="Escribe un mensaje..."
+        (keyup.enter)="sendMessage()"
+      />
+      <button (click)="sendMessage()" [disabled]="isLoading">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+      <button
+        (mousedown)="startRecording()"
+        (mouseup)="stopRecording()"
+        [class.recording]="isRecording"
+        [disabled]="isLoading"
+      >
+        <i class="fas fa-microphone"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+

@@ -1,0 +1,250 @@
+/* .chat-container para el contenedor del chat */
+.chat-container {
+  max-width: 800px;
+  margin: 20px auto;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  height: 80vh;
+  background-color: #f0f4f0;
+}
+
+.chat-header {
+  background-color: #4a7c59;
+  color: white;
+  padding: 15px;
+  text-align: center;
+}
+
+.chat-header h3 {
+  margin: 0;
+  font-size: 1.5em;
+}
+
+.chat-messages {
+  flex-grow: 1;
+  padding: 20px;
+  overflow-y: auto;
+  position: relative;
+}
+
+.message {
+  max-width: 80%;
+  margin-bottom: 15px;
+  padding: 10px 15px;
+  border-radius: 20px;
+  clear: both;
+  transition: all 0.3s ease;
+  line-height: 1.5;
+  word-wrap: break-word;
+}
+
+.user-message {
+  background-color: #87ab69;
+  color: white;
+  float: right;
+}
+
+.bot-message {
+  background-color: #e9e9eb;
+  color: #333;
+  float: left;
+}
+
+.chat-input {
+  background-color: white;
+  padding: 20px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.input-area {
+  display: flex;
+  align-items: center;
+}
+
+.input-area input[type="text"] {
+  flex-grow: 1;
+  padding: 10px 15px;
+  border: 1px solid #ccc;
+  border-radius: 30px;
+  font-size: 1em;
+  margin: 0 10px;
+}
+
+.input-area button {
+  background-color: #4a7c59;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-left: 10px;
+}
+
+.input-area button:hover:not(:disabled) {
+  background-color: #3a6147;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.input-area button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.file-upload-icon {
+  color: #4a7c59;
+  cursor: pointer;
+  font-size: 1.2em;
+}
+
+.file-drop-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(74, 124, 89, 0.8);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 1.5em;
+  z-index: 10;
+}
+
+.file-drop-overlay i {
+  font-size: 3em;
+  margin-bottom: 10px;
+}
+
+.selected-file {
+  margin-top: 10px;
+  color: #4a7c59;
+}
+
+.selected-file i {
+  margin-right: 5px;
+}
+
+.message-timestamp {
+  font-size: 0.75em;
+  color: #888;
+  margin-left: 10px;
+  float: right;
+}
+
+.user-message .message-timestamp {
+  color: #e0e0e0;
+}
+
+/* Estilos para el audio */
+.audio-container {
+  display: flex;
+  align-items: center;
+}
+
+audio {
+  width: 100%;
+  margin-top: 10px;
+}
+
+/* Estilos para la transcripción */
+.toggle-transcription {
+  background: none;
+  border: none;
+  color: #4a7c59;
+  cursor: pointer;
+  margin-left: 10px;
+  padding: 5px;
+  transition: color 0.3s ease;
+}
+
+.toggle-transcription:hover {
+  color: #3a6147;
+}
+
+.transcription {
+  margin-top: 10px;
+  font-style: italic;
+  color: #666;
+  background-color: #f9f9f9;
+  padding: 10px;
+  border-radius: 5px;
+  border-left: 3px solid #4a7c59;
+}
+
+.uploaded-image {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 10px;
+  margin-top: 10px;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Estilos para el indicador de carga */
+.loading-indicator {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  z-index: 1000;
+}
+
+.loading-blob {
+  width: 20px;
+  height: 20px;
+  background-color: #4a7c59;
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(0.8); opacity: 0.5; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(0.8); opacity: 0.5; }
+}
+
+.input-area button.recording {
+  background-color: #ff4136;
+  animation: pulse 1s infinite alternate;
+}
+
+/* Estilos para el focus */
+.input-area button:focus,
+.input-area input[type="text"]:focus {
+  outline: 2px solid #4a7c59;
+  outline-offset: 2px;
+}
+
+/* Estilos para pantallas de teléfono */
+@media (max-width: 600px) {
+  .chat-container {
+    height: 100vh;
+    margin: 0;
+    border-radius: 0;
+  }
+
+  .message {
+    max-width: 90%;
+  }
+
+  .input-area {
+    flex-wrap: wrap;
+  }
+
+  .input-area input[type="text"] {
+    flex-basis: 100%;
+    margin-bottom: 10px;
+  }
+
+  .input-area button {
+    flex-grow: 1;
+    margin-left: 0;
+    margin-right: 5px;
+  }
+}
