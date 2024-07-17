@@ -87,7 +87,7 @@
 .input-area button:hover:not(:disabled) {
   background-color: #3a6147;
   transform: translateY(-2px);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .input-area button:disabled {
@@ -184,7 +184,7 @@ audio {
   border-radius: 10px;
   margin-top: 10px;
   border: 1px solid #ddd;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* Estilos para el indicador de carga */
@@ -221,7 +221,7 @@ audio {
   outline-offset: 2px;
 }
 
-/* Estilos para pantallas de teléfono */
+/* Estilos para pantallas de teléfono */
 @media (max-width: 600px) {
   .chat-container {
     height: 100vh;

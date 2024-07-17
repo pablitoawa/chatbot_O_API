@@ -3,7 +3,6 @@ import { AfterViewChecked, Component, ElementRef, ViewChild, NgZone } from '@ang
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 
-//Definir la interface Message (declarar variables y tipos de datos)
 interface Message {
   text: string;
   isUser: boolean;
@@ -16,6 +15,7 @@ interface Message {
   isImage?: boolean;
   imageUrl?: string;
 }
+
 @Component({
   selector: 'app-chatbot',
   templateUrl: './chatbot.component.html',
@@ -24,10 +24,8 @@ interface Message {
   styleUrls: ['./chatbot.component.css'],
 })
 export class ChatBotComponent implements AfterViewChecked {
-  //viewchild para manejar que el scroll se haga automaticamente cuando se agregue un nuevo mensaje
   @ViewChild('chatMessages') private chatMessagesContainer!: ElementRef;
 
-  //arreglo de mensajes del asistente
   messages: Message[] = [
     {
       text: 'Hola, ¿En qué puedo ayudarte?',
@@ -38,29 +36,24 @@ export class ChatBotComponent implements AfterViewChecked {
   ];
   newMessage = '';
   isDragging = false; 
-  isRecording = false; // variable para controlar el estado de grabación
-  isLoading = false; // variable para controlar el estado de carga
+  isRecording = false;
+  isLoading = false;
   private shouldScrollToBottom = false;
-  private mediaRecorder: MediaRecorder | null = null; // variable para el objeto de grabación
-  private audioChunks: Blob[] = []; // arreglo para almacenar los fragmentos de audio
-
-  //llave de API
-  private readonly apiKey =
-    'INSERTE_TU_API_KEY';
+  private mediaRecorder: MediaRecorder | null = null;
+  private audioChunks: Blob[] = [];
+  private readonly apiKey = 'Inserte la API Key AQUI';
   private readonly apiUrl = 'https://api.openai.com/v1';
-  private readonly apiModelUrl = 'http://127.0.0.1:5000';
 
-  //con NgZone nos aseguramos de que Angular detecte los cambios y actualice la vista
+  botMessage: string = ''; // Hacer público
+
   constructor(private http: HttpClient, private ngZone: NgZone) {}
 
-  //metodo para manejar el scroll
   ngAfterViewChecked() {
     if (this.shouldScrollToBottom) {
       this.scrollToBottom();
     }
   }
 
-  //metodo para hacer scroll
   scrollToBottom(): void {
     try {
       this.chatMessagesContainer.nativeElement.scrollTop =
@@ -71,13 +64,11 @@ export class ChatBotComponent implements AfterViewChecked {
     }
   }
 
-  //metodo para agregar un nuevo mensaje
   addMessage(message: Message): void {
     this.messages.push(message);
     this.shouldScrollToBottom = true;
   }
 
-  //metodo para obtener la fecha y hora actual
   getCurrentTimestamp(): string {
     return new Date().toLocaleString('es-ES', {
       year: 'numeric',
@@ -89,7 +80,6 @@ export class ChatBotComponent implements AfterViewChecked {
     });
   }
 
-  //metodo para enviar un nuevo mensaje
   sendMessage() {
     if (this.newMessage.trim()) {
       const userMessage: Message = {
@@ -104,7 +94,6 @@ export class ChatBotComponent implements AfterViewChecked {
     }
   }
 
-  //metodo para obtener la respuesta del asistente
   getAssistantResponse(userMessage: string) {
     this.isLoading = true;
     const headers = new HttpHeaders({
@@ -112,13 +101,11 @@ export class ChatBotComponent implements AfterViewChecked {
       'Authorization': `Bearer ${this.apiKey}`
     });
 
-     // Agregar la respuesta del asistente al historial de conversaciones (mantener el contexto de la conversación)
     const conversationHistory = this.messages.map(msg => ({
       role: msg.role,
       content: msg.text
     }));
 
-    //especifica el modelo de GPT-3.5-turbo y se le otorga un system con el historial de conversaciones
     const body = {
       model: 'gpt-3.5-turbo',
       messages: [
@@ -131,13 +118,8 @@ export class ChatBotComponent implements AfterViewChecked {
     this.http.post<any>(`${this.apiUrl}/chat/completions`, body, { headers }).subscribe({
       next: (response) => {
         this.ngZone.run(() => {
-          const botMessage: Message = {
-            text: response.choices[0].message.content,
-            isUser: false, // Indica que el asistente no es el usuario, de poner en "true" la respuesta del asistente se reflejará como si nosotros (verde) estuvieramos enviando el mensaje
-            timestamp: this.getCurrentTimestamp(),
-            role: 'assistant'
-          };
-          this.addMessage(botMessage);
+          const botMessage = response.choices[0].message.content;
+          this.typeBotMessage(botMessage);
           this.isLoading = false;
         });
       },
@@ -157,7 +139,29 @@ export class ChatBotComponent implements AfterViewChecked {
     });
   }
 
-  //metodo para manejar el evento de seleccionar un archivo
+  typeBotMessage(fullText: string) {
+    let currentText = '';
+    const typingSpeed = 50; // velocidad de escritura en milisegundos
+
+    const intervalId = setInterval(() => {
+      if (currentText.length < fullText.length) {
+        currentText += fullText.charAt(currentText.length);
+        this.botMessage = currentText;
+        this.shouldScrollToBottom = true;
+      } else {
+        clearInterval(intervalId);
+        const botMessage: Message = {
+          text: fullText,
+          isUser: false,
+          timestamp: this.getCurrentTimestamp(),
+          role: 'assistant'
+        };
+        this.botMessage = '';
+        this.addMessage(botMessage);
+      }
+    }, typingSpeed);
+  }
+
   onFileSelected(event: Event) {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (file) {
@@ -165,7 +169,6 @@ export class ChatBotComponent implements AfterViewChecked {
     }
   }
 
-  //metodo para subir un archivo
   uploadFile(file: File) {
     if (file.type.startsWith('image/')) {
       this.handleImageUpload(file);
@@ -174,7 +177,6 @@ export class ChatBotComponent implements AfterViewChecked {
     }
   }
 
-  //metodo para manejar el evento de subir una imagen (aun no funciona)
   handleImageUpload(file: File) {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -187,39 +189,10 @@ export class ChatBotComponent implements AfterViewChecked {
         role: 'user',
       };
       this.addMessage(imageMessage);
-      this.getModelResponse(file);
     };
     reader.readAsDataURL(file);
   }
 
-  getModelResponse(image: File) {
-    this.isLoading = true;
-    const formData = new FormData();
-    formData.append('file', image);
-
-    this.http.post<any>(`${this.apiModelUrl}/modelo`, formData).subscribe({
-      next: (modelResponse) => {
-        this.ngZone.run(() => {
-          const botMessage: Message = {
-            text: modelResponse.prediction,
-            isUser: false, // Indica que el asistente no es el usuario, de poner en "true" la respuesta del asistente se reflejará como si nosotros (verde) estuvieramos enviando el mensaje
-            timestamp: this.getCurrentTimestamp(),
-            role: 'assistant'
-          };
-          this.addMessage(botMessage);
-          this.isLoading = false;
-        });
-      },
-      error: (error) => {
-        this.ngZone.run(() => {
-          console.error('Error en procesar imagen', error);
-          this.isLoading = false;
-        });
-      }
-    });
-  }
-
-  //metodo para manejar el evento de subir un audio
   handleAudioUpload(file: File) {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -239,7 +212,6 @@ export class ChatBotComponent implements AfterViewChecked {
     reader.readAsDataURL(file);
   }
 
-  //metodo para manejar el evento de grabar un audio
   startRecording() {
     navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
       this.mediaRecorder = new MediaRecorder(stream);
@@ -260,7 +232,6 @@ export class ChatBotComponent implements AfterViewChecked {
     });
   }
 
-  //metodo para detener el evento de grabar un audio
   stopRecording() {
     if (this.mediaRecorder) {
       this.mediaRecorder.stop();
@@ -268,7 +239,6 @@ export class ChatBotComponent implements AfterViewChecked {
     }
   }
 
-  //metodo para transcribir un audio
   transcribeAudio(audioFile: File) {
     this.isLoading = true;
     const formData = new FormData();
@@ -279,7 +249,6 @@ export class ChatBotComponent implements AfterViewChecked {
       'Authorization': `Bearer ${this.apiKey}`
     });
 
-    // Realiza la transcripción de audio
     this.http.post<any>(`${this.apiUrl}/audio/transcriptions`, formData, { headers }).subscribe({
       next: (transcriptionResponse) => {
         this.ngZone.run(() => {
@@ -300,21 +269,18 @@ export class ChatBotComponent implements AfterViewChecked {
     });
   }
 
-  //metodo para manejar el evento de arrastrar un archivo
   onDragOver(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
     this.isDragging = true;
   }
 
-  //metodo para manejar el evento de dejar de arrastrar un archivo
   onDragLeave(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
     this.isDragging = false;
   }
 
-  //metodo para manejar el evento de soltar un archivo
   onDrop(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
