@@ -48,6 +48,7 @@ export class ChatBotComponent implements AfterViewChecked {
   private readonly apiKey =
     'INSERTE_TU_API_KEY';
   private readonly apiUrl = 'https://api.openai.com/v1';
+  private readonly apiModelUrl = 'http://127.0.0.1:5000';
 
   //con NgZone nos aseguramos de que Angular detecte los cambios y actualice la vista
   constructor(private http: HttpClient, private ngZone: NgZone) {}
@@ -186,8 +187,36 @@ export class ChatBotComponent implements AfterViewChecked {
         role: 'user',
       };
       this.addMessage(imageMessage);
+      this.getModelResponse(file);
     };
     reader.readAsDataURL(file);
+  }
+
+  getModelResponse(image: File) {
+    this.isLoading = true;
+    const formData = new FormData();
+    formData.append('file', image);
+
+    this.http.post<any>(`${this.apiModelUrl}/modelo`, formData).subscribe({
+      next: (modelResponse) => {
+        this.ngZone.run(() => {
+          const botMessage: Message = {
+            text: modelResponse.prediction,
+            isUser: false, // Indica que el asistente no es el usuario, de poner en "true" la respuesta del asistente se reflejará como si nosotros (verde) estuvieramos enviando el mensaje
+            timestamp: this.getCurrentTimestamp(),
+            role: 'assistant'
+          };
+          this.addMessage(botMessage);
+          this.isLoading = false;
+        });
+      },
+      error: (error) => {
+        this.ngZone.run(() => {
+          console.error('Error en procesar imagen', error);
+          this.isLoading = false;
+        });
+      }
+    });
   }
 
   //metodo para manejar el evento de subir un audio
